@@ -12,16 +12,14 @@ android {
 
     ndk {
       moduleName "streamer"
+      stl "gnustl_static"
       ldLibs "log"
+      cFlags "-std=c++11 -fexceptions -Wl,--no-as-needed -frtti" 
     }
   }
-
 }
 
 dependencies {
   androidTestCompile 'org.robolectric:robolectric:2.2'
 
 }
-
-
-
