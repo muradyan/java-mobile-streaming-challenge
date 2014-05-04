@@ -8,6 +8,7 @@
 
 #include <thread>
 #include <chrono>
+#include <atomic>
 
 #define LOG_TAG "EventGeneratorJNI"
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -21,7 +22,9 @@ static jmethodID _event_callback;
 static JavaVM* _java_vm = 0;
 
 // indicates whether event generator is stopped or not
-static bool _stopped = true;
+// since the variable is going to be read/modified from 
+// different threads we make changes atomic
+static std::atomic<bool> _stopped;
 
 // period for triggering event in milliseconds 
 static int _period = 800;
@@ -36,13 +39,13 @@ static void wait()
     do {
         std::this_thread::sleep_for(e);
         // std::this_thread::yield();
-    } while (!_stopped && std::chrono::high_resolution_clock::now() < end);
+    } while (!_stopped.load() && std::chrono::high_resolution_clock::now() < end);
 }
 
 static void generate_random_events(JNIEnv* env, jobject thiz)
 {
     assert(nullptr != env);
-    while (!_stopped) {
+    while (!_stopped.load()) {
         jstring msg = env->NewStringUTF("Event yeah");
         env->CallVoidMethod(thiz, _event_callback, rand() % 3, msg);
         wait();
@@ -56,7 +59,7 @@ static void generate_random_events(JNIEnv* env, jobject thiz)
 extern "C" JNIEXPORT void native_start(JNIEnv* env, jobject thiz) 
 {
     LOGI("native_start - begin");
-    _stopped = false;
+    _stopped.store(false);
     // need to get the global reference to share between threads
     jobject obj = env->NewGlobalRef(thiz);
     std::thread([obj]() {
@@ -79,7 +82,7 @@ extern "C" JNIEXPORT void native_start(JNIEnv* env, jobject thiz)
 
 extern "C" JNIEXPORT void native_stop(JNIEnv* env, jobject thiz) 
 {
-    _stopped = true;
+    _stopped.store(true);
 }
 
 extern "C" JNIEXPORT jstring native_get_info(JNIEnv * env, jobject thiz) 
