@@ -21,7 +21,7 @@ public class Streamer {
 
     public void onEvent(int eventType, String msg) {
         Log.i("Streamer", "Type:" + eventType + " | " + msg);
-        observer.notify(eventType, msg);
+        //observer.notify(eventType, msg);
     }
 
 }

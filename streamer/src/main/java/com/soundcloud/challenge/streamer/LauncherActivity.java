@@ -9,23 +9,28 @@ public class LauncherActivity extends Activity implements Observer {
 
     private Streamer streamer;
     private TextView textView;
+    private int currentNotificationLineNumber = 0;
 
     @Override
     public void notify(int eventType, String msg)
     {
+        assert(textView != null);
+        String line = Integer.toString(currentNotificationLineNumber);
         switch (eventType) {
-            case 0: 
-                textView.append("UserEvent: " + msg + "\n");
+            case 0: { 
+                textView.append(line + ": UserEvent: " + msg + "\n");
                 break;
-            case 1: 
-                textView.append("SystemEvent: " + msg + "\n");
+            } case 1: {
+                textView.append(line + ": SystemEvent: " + msg + "\n");
                 break;
-            case 2: 
-                textView.append("LoggingEvent: " + msg + "\n");
+            } case 2: {
+                textView.append(line + ": LoggingEvent: " + msg + "\n");
                 break;
-            default:
+            } default: {
                 Log.d("LauncherActivity", "not supported event type");
+            }
         }
+        ++currentNotificationLineNumber;
     }
 
     @Override
@@ -40,14 +45,13 @@ public class LauncherActivity extends Activity implements Observer {
         Log.i("LauncherActivity", "Starting the Activity");
         streamer = new Streamer(this);
         textView = ((TextView) findViewById(R.id.test));
-        assert(textView != null);
-        textView.setText(streamer.getInfo() + "\n\n");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         Log.i("LauncherActivity", "Pausing the Activity");
+        assert(null != streamer);
         streamer.stopEvents();
     }
 
@@ -55,6 +59,9 @@ public class LauncherActivity extends Activity implements Observer {
     protected void onResume() {
         super.onResume();
         Log.i("LauncherActivity", "Resuming the Activity");
+        assert(null != textView);
+        assert(null != streamer);
+        textView.setText(streamer.getInfo() + "\n\n");
         streamer.startEvents();
     }
 
