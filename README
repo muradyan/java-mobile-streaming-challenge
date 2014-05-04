@@ -10,3 +10,9 @@
 
 - In order to build the project environment variable NDK_TOOLCHAIN_VERSION=4.8
   must be exported from the shell 
+
+- local.properties - contains the paths to the NDK and ADT; update according to
+  yours if necessary
+
+- to build the project call './gradlew build' it will download gradle if
+  necessary and call 
