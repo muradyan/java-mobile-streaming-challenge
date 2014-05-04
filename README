@@ -1,0 +1,12 @@
+
+- Developed under: Ubuntu 14.04 LTS, kernel: 3.13.0-24-generic
+
+- Used GCC version: 4.8.2
+
+- Android NDK: r9d (64-bit)
+
+- Some C++11/STL functionality is used to implement JNI module therefore
+  streamer/build.gradle has been updated accordingly
+
+- In order to build the project environment variable NDK_TOOLCHAIN_VERSION=4.8
+  must be exported from the shell 
