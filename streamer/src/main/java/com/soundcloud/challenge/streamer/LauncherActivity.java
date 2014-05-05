@@ -5,16 +5,6 @@ import android.os.Bundle;
 import android.widget.TextView;
 import android.util.Log;
 
-/**
-  Another solution would be to setup a Timer (or Handler) instead.  From JNI
-  the messages would be accumulated in a queue and timer would read and display
-  on the UI.  But this would bring the overhead of the timer, synchronization
-  when reading/writing form the queue.
-
-  Depending on the frequency, size of the message the importance how fast they
-  should be displayed to the user, multiple messages could be grouped to reduce
-  the number of calls from/to JNI.
- */
 public class LauncherActivity extends Activity implements Observer {
 
     private NotificationPresenter notificationPresenter;

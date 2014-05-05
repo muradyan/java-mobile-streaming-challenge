@@ -1,4 +1,6 @@
 
+ --- Environment setup ---
+
 - Developed under: Ubuntu 14.04 LTS, kernel: 3.13.0-24-generic
 
 - Used GCC version: 4.8.2
@@ -15,4 +17,35 @@
   yours if necessary
 
 - to build the project call './gradlew build' it will download gradle if
-  necessary and call 
+  necessary and call.  call './gradlew tasks' to see other useful
+  tasks/commands.
+
+- launch_tomcat.sh script is used to monitor the output (stdout, stderr,
+  stdlog) of our application.  For more sophisticated usage other filtering
+  should be applied on tomcat.
+
+ --- Implementation details ---
+
+From the high level the source code is divided into 2 parts - Java part
+(managed side) and the JNI (C++) part.  The task is to trigger events on the
+JNI side and send notifications to the Java side (presentation layer) of the
+application.  
+
+The JNI engine which triggers the events is started by the presentation layer
+(Java) - UI thread, upon application activation and is suspended when
+application is put to the background or closed.
+
+The engine starting function in the JNI code is called by the UI thread so, in
+order to keep the UI thread responsive we create another thread inside JNI
+which is generating events and calls Java method, which in its turn must update
+the UI so we redirect the textView updating part to the UI thread.
+
+Another solution would be to setup a Timer (or Handler) instead.  From JNI the
+messages would be pushed to a  queue and the timer would read and display on
+the UI.  But this would bring the overhead caused by the timer, synchronization
+when reading/writing form the queue.
+
+Depending on the frequency, size of the message the importance how fast they
+should be displayed to the user, multiple messages could be grouped/packaged to
+reduce the number of calls from/to JNI.
+
