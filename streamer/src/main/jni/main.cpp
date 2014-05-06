@@ -32,7 +32,7 @@ static event_generator engine;
 extern "C" JNIEXPORT void native_start(JNIEnv* env, jobject thiz) 
 {
     LOGI("native_start - begin");
-    engine.start();
+    engine.enable();
     // need to get the global reference to share between threads
     jobject obj = env->NewGlobalRef(thiz);
     std::thread([obj]() {
@@ -59,7 +59,7 @@ extern "C" JNIEXPORT void native_start(JNIEnv* env, jobject thiz)
 
 extern "C" JNIEXPORT void native_stop(JNIEnv* env, jobject thiz) 
 {
-    engine.stop();
+    engine.disable();
 }
 
 extern "C" JNIEXPORT jstring native_get_info(JNIEnv* env, jobject thiz) 

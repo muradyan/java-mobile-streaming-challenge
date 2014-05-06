@@ -24,6 +24,9 @@
   stdlog) of our application.  For more sophisticated usage other filtering
   should be applied on tomcat.
 
+- Unit tests are available in the unit-tests directory.  Just call 'make run'
+  which will build and run the C++ based unit tests.
+
  --- Implementation details ---
 
 From the high level the source code is divided into 2 pieces - Java part

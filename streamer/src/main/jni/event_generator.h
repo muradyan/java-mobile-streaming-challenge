@@ -17,16 +17,16 @@ public:
       , _period(500)
     {}
 
-    /// stops the generator
-    void stop()
+    /// disables the generator
+    void disable()
     {
         std::unique_lock<std::mutex> lck(_mutex);
         _stopped = true;
         _condition_variable.notify_one();
     }
 
-    /// starts the generator
-    void start()
+    /// enable the generator
+    void enable()
     {
         std::unique_lock<std::mutex> lck(_mutex);
         _stopped = false;
@@ -44,9 +44,9 @@ public:
     */
     void run(std::function<void()>&& f)
     {
-        do {
+        while (!wait_until()) {
             f();
-        } while (!wait_until());
+        }
     }
 
 private:
