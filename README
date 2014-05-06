@@ -1,6 +1,9 @@
 
  --- Environment setup ---
 
+- In order to build the project the following environment variable must be set
+  NDK_TOOLCHAIN_VERSION=4.8 
+
 - Developed under: Ubuntu 14.04 LTS, kernel: 3.13.0-24-generic
 
 - Used GCC version: 4.8.2
@@ -9,9 +12,6 @@
 
 - Some C++11/STL functionality is used to implement JNI module therefore
   streamer/build.gradle has been updated accordingly
-
-- In order to build the project environment variable NDK_TOOLCHAIN_VERSION=4.8
-  must be exported from the shell 
 
 - local.properties - contains the paths to the NDK and ADT; update according to
   yours if necessary
@@ -26,14 +26,14 @@
 
  --- Implementation details ---
 
-From the high level the source code is divided into 2 parts - Java part
+From the high level the source code is divided into 2 pieces - Java part
 (managed side) and the JNI (C++) part.  The task is to trigger events on the
 JNI side and send notifications to the Java side (presentation layer) of the
 application.  
 
 The JNI engine which triggers the events is started by the presentation layer
 (Java) - UI thread, upon application activation and is suspended when
-application is put to the background or closed.
+application is put to the background or is closed.
 
 The engine starting function in the JNI code is called by the UI thread so, in
 order to keep the UI thread responsive we create another thread inside JNI
