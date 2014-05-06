@@ -1,14 +1,14 @@
 
+#include "event_generator.h"
+
 #include <jni.h>
 #include <android/log.h>
 
 #include <cstdlib>
 #include <cassert>
-#include <ctime>
 
 #include <thread>
-#include <mutex>
-#include <condition_variable>
+#include <functional>
 
 #define LOG_TAG "EventGeneratorJNI"
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
@@ -21,35 +21,7 @@ static jmethodID _event_callback;
 /// Java VM 
 static JavaVM* _java_vm = 0;
 
-/// indicates whether event generator is stopped or not
-static bool _stopped;
-
-/// synchronization primitives to block the thread 
-static std::mutex _mutex;
-static std::condition_variable _condition_variable;
-
-/// period for triggering event in milliseconds 
-static int _period = 500;
-
-/**
- blocks the thread until either _period elapses or _stopped becomes true
- returns true if _stopped became true
- */
-static bool wait_until()
-{
-    std::unique_lock<std::mutex> lck(_mutex);
-    auto a = std::chrono::duration<int,std::milli>(_period);
-    return _condition_variable.wait_for(lck, a, []{return _stopped;});
-}
-
-static void generate_random_events(JNIEnv* env, jobject thiz)
-{
-    assert(nullptr != env);
-    do {
-        jstring msg = env->NewStringUTF("Event yeah");
-        env->CallVoidMethod(thiz, _event_callback, rand() % 3, msg);
-    } while (!wait_until());
-}
+static event_generator engine;
 
 /**
  for local vs. global references 
@@ -60,7 +32,7 @@ static void generate_random_events(JNIEnv* env, jobject thiz)
 extern "C" JNIEXPORT void native_start(JNIEnv* env, jobject thiz) 
 {
     LOGI("native_start - begin");
-    _stopped = false;
+    engine.start();
     // need to get the global reference to share between threads
     jobject obj = env->NewGlobalRef(thiz);
     std::thread([obj]() {
@@ -74,7 +46,10 @@ extern "C" JNIEXPORT void native_start(JNIEnv* env, jobject thiz)
             LOGI(s2 != 0 ? "thread failed to attach" : 
                            "thread successfully attached");
         } 
-        generate_random_events(e, obj);
+        engine.run([e, obj] () {
+            jstring msg = e->NewStringUTF("Event yeah");
+            e->CallVoidMethod(obj, _event_callback, rand() % 3, msg);
+        });
         e->DeleteGlobalRef(obj);
         _java_vm->DetachCurrentThread();
         LOGI("native_start - returning from the thread");
@@ -84,9 +59,7 @@ extern "C" JNIEXPORT void native_start(JNIEnv* env, jobject thiz)
 
 extern "C" JNIEXPORT void native_stop(JNIEnv* env, jobject thiz) 
 {
-    std::unique_lock<std::mutex> lck(_mutex);
-    _stopped = true;
-    _condition_variable.notify_one();
+    engine.stop();
 }
 
 extern "C" JNIEXPORT jstring native_get_info(JNIEnv* env, jobject thiz) 
@@ -115,5 +88,6 @@ jint JNI_OnLoad (JavaVM* vm, void* reserved)
         "(ILjava/lang/String;)V");
     env->RegisterNatives(klass, native_methods, 3);
     srand(time(nullptr));
+    engine.set_period_milli(500);
     return JNI_VERSION_1_4;
 }
